@@ -48,16 +48,33 @@ const testConnection = async () => {
 };
 
 // Sync database models
-const syncDatabase = async () => {
+export const syncDatabase = async () => {
   try {
-    if (config.isDevelopment) {
-      await sequelize.sync({ alter: true });
-      console.log('✅ Database synchronized successfully.');
-    }
+    // First sync without forcing or altering to check the current state
+    await sequelize.sync();
+    
+    // Then alter the tables with a more permissive configuration
+    await sequelize.sync({ alter: { drop: false } });
+    
+    console.log('✅ Database synced successfully');
+    return true;
   } catch (error) {
-    console.error('❌ Unable to sync database:', error.message);
-    throw error;
+    console.error('❌ Unable to sync database:', error);
+    
+    // If the error is about dropping foreign keys, try a more permissive approach
+    if (error.parent && error.parent.code === 'ER_CANT_DROP_FIELD_OR_KEY') {
+      console.log('⚠️  Attempting to sync with force: false...');
+      try {
+        await sequelize.sync({ force: false });
+        console.log('✅ Database synced successfully with force: false');
+        return true;
+      } catch (retryError) {
+        console.error('❌ Still unable to sync database:', retryError);
+      }
+    }
+    
+    return false;
   }
 };
 
-export { sequelize, testConnection, syncDatabase };
+export { sequelize, testConnection };

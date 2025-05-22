@@ -1,36 +1,32 @@
 import winston from 'winston';
-import config from './config.js';
 
-const { combine, timestamp, printf, colorize, align } = winston.format;
-
+// Create a simple console logger
 const logger = winston.createLogger({
-  level: config.server.env === 'production' ? 'info' : 'debug',
-  format: combine(
-    timestamp({
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  format: winston.format.combine(
+    winston.format.timestamp({
       format: 'YYYY-MM-DD HH:mm:ss',
     }),
-    colorize({ all: true }),
-    align(),
-    printf(
-      (info) =>
-        `[${info.timestamp}] ${info.level}: ${info.message}${
-          info.stack ? '\n' + info.stack : ''
-        }`
-    )
+    winston.format.errors({ stack: true }),
+    winston.format.splat(),
+    winston.format.json()
   ),
+  defaultMeta: { service: 'student-expense-tracker' },
   transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs/combined.log' }),
-  ],
-  exitOnError: false,
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      )
+    })
+  ]
 });
 
-// Create a stream object with a 'write' function that will be used by `morgan`
+// Create a stream object for morgan
 logger.stream = {
-  write: function (message) {
+  write: (message) => {
     logger.info(message.trim());
-  },
+  }
 };
 
 export default logger;
