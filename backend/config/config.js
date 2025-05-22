@@ -49,12 +49,14 @@ const config = {
       if (!origin) return callback(null, true);
       
       const allowedOrigins = [
-        'https://student-expense-tracker-om9t.vercel.app', // Make sure this matches your frontend URL
-      'http://localhost:3000',
+        'https://student-expense-tracker-nu.vercel.app', // Frontend URL
+        'http://localhost:3000',
+        'http://localhost:5173', // Common Vite dev server port
+        'https://student-expense-tracker-om9t.vercel.app' // Backend URL (for testing)
       ];
       
       // Allow any subdomain of vercel.app for preview deployments
-      if (origin.endsWith('.vercel.app')) {
+      if (origin.endsWith('.vercel.app') || origin.includes('localhost')) {
         return callback(null, true);
       }
       
@@ -67,6 +69,7 @@ const config = {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
     allowedHeaders: [
       'Content-Type',
       'Authorization',
