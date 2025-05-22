@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-btn {
+            padding: 10px 20px;
+            background-color: #0070f3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .test-btn:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-height: 100px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Test Page</h1>
+    <p>Click the button below to test the API connection:</p>
+    
+    <button class="test-btn" onclick="testApi('health')">Test Health Check</button>
+    <button class="test-btn" onclick="testApi('test-db')">Test Database Connection</button>
+    
+    <h3>Response:</h3>
+    <pre id="result">Click a button to test the API</pre>
+
+    <script>
+        async function testApi(endpoint) {
+            const result = document.getElementById('result');
+            result.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch(`/api/${endpoint}`);
+                const data = await response.json();
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

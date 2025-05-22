@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Backend server for Student Expense Tracker",
   "main": "server/server.js",
-  "type": "module",
   "private": true,
   "scripts": {
     "start": "node server/server.js",

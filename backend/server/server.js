@@ -1,10 +1,10 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import cookieParser from 'cookie-parser';
-import { sequelize } from '../config/db.js';
-import config from '../config/config.js';
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
+const { sequelize } = require('../config/db');
+const config = require('../config/config');
 
 // Initialize Express app
 const app = express();
@@ -68,10 +68,9 @@ app.use((req, res) => {
   });
 });
 
-// Start server
-const startServer = async () => {
+// Initialize database connection
+const initializeDatabase = async () => {
   try {
-    // Test database connection
     console.log('🔍 Testing database connection...');
     await sequelize.authenticate();
     console.log('✅ Database connection established.');
@@ -82,12 +81,23 @@ const startServer = async () => {
       await sequelize.sync({ alter: true });
       console.log('✅ Database models synced.');
     }
+    return true;
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    throw error;
+  }
+};
 
+// Start server for local development
+const startServer = async () => {
+  try {
+    await initializeDatabase();
+    
     // Start listening
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log('📊 Health check: http://localhost:3001/api/health');
+      console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
@@ -107,7 +117,10 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1);
 });
 
-// Start the server
-startServer();
+// For Vercel, we'll export the app directly
+module.exports = app;
 
-export default app;
+// For local development, start the server
+if (process.env.NODE_ENV !== 'production') {
+  startServer();
+}
