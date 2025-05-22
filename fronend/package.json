@@ -31,7 +31,7 @@
   },
   "scripts": {
     "start": "npm run generate-css && react-scripts start",
-    "build": "node build.js",
+    "build": "npm run generate-css && react-scripts build",
     "generate-css": "tailwindcss -i ./src/index.css -o ./src/styles/tailwind.css --minify",
     "watch-css": "tailwindcss -i ./src/index.css -o ./src/styles/tailwind.css --watch",
     "test": "react-scripts test",
