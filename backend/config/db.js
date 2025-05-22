@@ -44,4 +44,10 @@ async function testConnection() {
   }
 }
 
-testConnection();
+// Export the sequelize instance
+export { sequelize };
+
+// Test the connection if this file is run directly
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  testConnection();
+}
