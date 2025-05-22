@@ -73,7 +73,7 @@ app.use((req, res) => {
 // This file is primarily for Vercel deployment
 if (process.env.VERCEL !== '1') {
   console.log('⚠️  Running in local development mode');
-  console.log('ℹ️  Start the server using: cd backend && npm run dev');
+  console.log('ℹ️  Start the server using: cd backend; npm run dev');
   console.log('    or use: npm run dev in the root directory if configured');
 }
 
