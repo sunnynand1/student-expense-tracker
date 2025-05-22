@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Backend server URL with fallback
-const API_URL = "https://student-expense-tracker-om9t.vercel.app/api"
+const API_URL = "https://student-expense-tracker-om9t.vercel.app/api" || 'http://localhost:5000/api';
 
 // Navigation will be handled by React Router's useNavigate hook
 let navigate = null;

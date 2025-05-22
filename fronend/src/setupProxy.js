@@ -2,7 +2,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 
 module.exports = function(app) {
   const proxy = createProxyMiddleware({
-    target: 'http://localhost:5000',
+    target: 'https://student-expense-tracker-om9t.vercel.app',
     changeOrigin: true,
     secure: false,
     logLevel: 'debug',
@@ -29,5 +29,5 @@ module.exports = function(app) {
   });
 
   app.use('/api', proxy);
-  console.log('Proxy configured for http://localhost:5000');
+  console.log('Proxy configured for https://student-expense-tracker-om9t.vercel.app');
 };
