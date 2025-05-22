@@ -20,27 +20,10 @@ export const errorHandler = (err, req, res, next) => {
     return res.status(400).json({ error: err.message });
   }
 
-  // Database connection errors
-  const dbErrors = [
-    'SequelizeConnectionError',
-    'SequelizeConnectionRefusedError',
-    'SequelizeHostNotFoundError',
-    'SequelizeHostNotReachableError'
-  ];
-
-  if (dbErrors.includes(err.name)) {
-    return res.status(503).json({
-      error: 'Database Service Unavailable',
-      message: process.env.NODE_ENV === 'development' ? err.message : 'Database connection error'
-    });
-  }
-
   // Generic error response
   res.status(err.status || 500).json({
     error: process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message,
-    path: req.path,
-    method: req.method,
-    timestamp: new Date().toISOString()
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };
 
@@ -49,7 +32,6 @@ export const notFoundHandler = (req, res) => {
   res.status(404).json({
     error: 'Not Found',
     path: req.path,
-    method: req.method,
-    timestamp: new Date().toISOString()
+    method: req.method
   });
 };
