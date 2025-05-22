@@ -2,11 +2,11 @@
   "name": "student-expense-tracker-backend",
   "version": "1.0.0",
   "description": "Backend server for Student Expense Tracker",
-  "main": "server/server.js",
+  "main": "index.js",
   "private": true,
   "scripts": {
-    "start": "node server/server.js",
-    "dev": "nodemon server/server.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo"
   },

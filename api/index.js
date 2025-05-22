@@ -1,30 +1,81 @@
 // This is the entry point for Vercel serverless functions
 const { createServer } = require('http');
 const { parse } = require('url');
+const express = require('express');
+const cors = require('cors');
 
-// Import the Express app from your backend
-const app = require('../backend/server/server').default;
+// Create a new Express app
+const app = express();
 
-// Create a simple HTTP server that routes requests to Express
-module.exports = (req, res) => {
+// Enable CORS for all routes
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Import the database connection and initialize it
+const { sequelize, testConnection } = require('../backend/config/db');
+
+// Import routes from your backend
+const apiRoutes = require('../backend/routes');
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ status: 'success', message: 'API is working!' });
+});
+
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
   try {
-    // Set CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Request-Method', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-    // Handle preflight
-    if (req.method === 'OPTIONS') {
-      res.writeHead(200);
-      return res.end();
-    }
-
-    // Handle the request with Express
-    return app(req, res);
-  } catch (err) {
-    console.error('Error:', err);
-    res.statusCode = 500;
-    res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    await testConnection();
+    res.json({
+      status: 'ok',
+      message: 'Server and database are running',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Health check failed',
+      error: error.message
+    });
   }
-};
+});
+
+// Use your API routes
+app.use('/api', apiRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    status: 'error',
+    message: 'Internal Server Error',
+    ...(process.env.NODE_ENV === 'development' && { error: err.message })
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: 'Not Found'
+  });
+});
+
+// For local development, we'll use the main backend server
+// This file is primarily for Vercel deployment
+if (process.env.VERCEL !== '1') {
+  console.log('⚠️  Running in local development mode');
+  console.log('ℹ️  Start the server using: cd backend && npm run dev');
+  console.log('    or use: npm run dev in the root directory if configured');
+}
+
+// Export the Express API for Vercel
+module.exports = app;
