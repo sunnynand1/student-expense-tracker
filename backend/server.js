@@ -31,10 +31,31 @@ app.use(cookieParser());
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL || 'https://student-expense-tracker-nu.vercel.app/'
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'],
-  credentials: false,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'https://student-expense-tracker-nu.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001'
+    ];
+    
+    // Allow any subdomain of vercel.app for preview deployments
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      console.warn('CORS blocked for origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
     'Content-Type',
@@ -47,7 +68,9 @@ const corsOptions = {
     'Content-MD5',
     'Date',
     'X-Api-Version'
-  ]
+  ],
+  exposedHeaders: ['Content-Range', 'X-Total-Count'],
+  maxAge: 600 // Cache preflight request for 10 minutes
 };
 
 app.use(cors(corsOptions));
