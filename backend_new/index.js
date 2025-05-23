@@ -18,9 +18,18 @@ app.get('/favicon.ico', (req, res) => {
   return;
 });
 
-// Add a route handler for the root path to prevent favicon.ico requests
+// Add a route handler for the root path
 app.get('/', (req, res) => {
-  res.status(200).json({ status: 'API is running' });
+  try {
+    res.status(200).json({ 
+      status: 'API is running',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  } catch (error) {
+    console.error('Root route error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 // CORS configuration
@@ -30,7 +39,8 @@ const allowedOrigins = [
   'https://student-expense-tracker-gilt.vercel.app',
   'https://student-expense-tracker.vercel.app',
   'https://student-expense-tracker-frontend.vercel.app',
-  'https://student-expense-tracker-api.vercel.app'
+  'https://student-expense-tracker-api.vercel.app',
+  'https://backend-pv0at0dzx-sunnys-projects-1afd7f5e.vercel.app'
 ];
 
 // Log environment for debugging
