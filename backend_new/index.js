@@ -15,6 +15,12 @@ app.use(helmet());
 // Handle favicon.ico requests to prevent 404 errors
 app.get('/favicon.ico', (req, res) => {
   res.status(204).end();
+  return;
+});
+
+// Add a route handler for the root path to prevent favicon.ico requests
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'API is running' });
 });
 
 // CORS configuration
@@ -69,13 +75,13 @@ app.use(cors(corsOptions));
 // Handle preflight requests
 app.options('*', cors(corsOptions));
 
-// Serve a blank favicon to prevent 404 errors
+// Catch-all for favicon.ico requests that might get through
 app.use((req, res, next) => {
-  if (req.url === '/favicon.ico') {
+  if (req.originalUrl && req.originalUrl.split('/').pop() === 'favicon.ico') {
     res.status(204).end();
-  } else {
-    next();
+    return;
   }
+  next();
 });
 app.use(morgan('dev'));
 app.use(express.json());
