@@ -4,18 +4,24 @@ import { getToken, removeToken } from '../utils/auth';
 // Backend server URL configuration
 let API_URL;
 
-if (process.env.NODE_ENV === 'development') {
-  // In development, use the local backend
-  API_URL = 'http://localhost:5001/api';
-} else if (process.env.REACT_APP_API_URL) {
-  // Use the environment variable if set (for Vercel)
-  API_URL = process.env.REACT_APP_API_URL;
-} else {
-  // Fallback to production URL
+// Set API URL based on environment
+if (process.env.NODE_ENV === 'production') {
+  // In production, use the production API URL
   API_URL = 'https://student-expense-tracker-api.vercel.app/api';
+  console.log('Running in production mode, using API:', API_URL);
+} else {
+  // In development, use localhost
+  API_URL = 'http://localhost:5001/api';
+  console.log('Running in development mode, using API:', API_URL);
 }
 
-console.log('API URL:', API_URL); // For debugging
+// Allow overriding with environment variable if needed
+if (process.env.REACT_APP_API_URL) {
+  API_URL = process.env.REACT_APP_API_URL;
+  console.log('Overriding API URL with REACT_APP_API_URL:', API_URL);
+}
+
+console.log('Final API URL:', API_URL);
 
 // Create axios instance with default config
 const api = axios.create({
@@ -146,29 +152,31 @@ const getAuthData = () => {
 // Auth API
 export const authAPI = {
   // Login user
-  login: async (credentials) => {
-    try {
-      const response = await api.post('/auth/login', credentials);
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-      }
-      return response.data;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
+  login: (credentials) => {
+    console.log('AuthAPI - Login request to:', api.defaults.baseURL + '/auth/login');
+    return api.post('/auth/login', credentials)
+      .then(response => {
+        console.log('AuthAPI - Login successful', response.data);
+        return response;
+      })
+      .catch(error => {
+        console.error('AuthAPI - Login error:', error);
+        throw error;
+      });
   },
-
+  
   // Register new user
-  register: async (userData) => {
-    try {
-      const response = await api.post('/auth/register', userData);
-      return response.data;
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
-    }
+  register: (userData) => {
+    console.log('AuthAPI - Register request to:', api.defaults.baseURL + '/auth/register');
+    return api.post('/auth/register', userData)
+      .then(response => {
+        console.log('AuthAPI - Registration successful', response.data);
+        return response;
+      })
+      .catch(error => {
+        console.error('AuthAPI - Registration error:', error);
+        throw error;
+      });
   },
 
   // Logout user

@@ -99,13 +99,27 @@ const Signup = () => {
       const userData = {
         username: formData.username.trim(),
         name: formData.name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        password: formData.password
+        email: formData.email.trim(),
+        password: formData.password,
+        confirmPassword: formData.confirmPassword
       };
-
+      
+      console.log('Submitting registration with data:', userData);
+      
       await register(userData);
-      toast.success('Account created successfully!');
-      navigate('/login');
+      
+      // Show success message
+      toast.success('Registration successful! Please check your email to verify your account.', {
+        position: 'top-center',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+      
+      // Redirect to login page after successful registration
+      navigate('/login', { replace: true });
     } catch (error) {
       console.error('Signup error:', error);
       const errorMessage = error.response?.data?.message || 

@@ -24,8 +24,11 @@ app.use(cookieParser());
 // CORS configuration
 const corsOptions = {
   origin: function(origin, callback) {
+    console.log('Incoming origin:', origin);
+    
     // In development, allow all origins
     if (process.env.NODE_ENV !== 'production') {
+      console.log('Allowing all origins in development');
       return callback(null, true);
     }
     
@@ -36,21 +39,40 @@ const corsOptions = {
       /^https?:\/\/student-expense-tracker\.com$/, // Production domain
       /^https?:\/\/www\.student-expense-tracker\.com$/, // www subdomain
       /^http:\/\/localhost(:[0-9]+)?$/, // Localhost with any port
-      /^https?:\/\/localhost(:[0-9]+)?$/ // Localhost with any port and https
+      /^https?:\/\/localhost(:[0-9]+)?$/, // Localhost with any port and https
+      /^https?:\/\/student-expense-tracker-frontend\.vercel\.app$/, // Frontend Vercel deployment
+      /^https?:\/\/student-expense-tracker-git-\w+-sunnynand1\.vercel\.app$/ // Vercel preview deployments
     ];
     
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('No origin header, allowing request');
+      return callback(null, true);
+    }
     
     // Check if the origin matches any of the allowed patterns
-    const isAllowed = allowedOrigins.some(regex => regex.test(origin));
+    const isAllowed = allowedOrigins.some(regex => {
+      const matches = regex.test(origin);
+      if (matches) {
+        console.log(`Origin ${origin} matched pattern:`, regex.toString());
+      }
+      return matches;
+    });
+    
+    if (!isAllowed) {
+      console.warn(`Blocked request from origin: ${origin}`);
+    } else {
+      console.log(`Allowed request from origin: ${origin}`);
+    }
+    
     callback(null, isAllowed);
   },
   credentials: true, // Allow cookies to be sent with requests
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-Auth-Token', 'X-API-Key'],
   exposedHeaders: ['Content-Range', 'X-Total-Count'],
-  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+  maxAge: 600 // Cache preflight request for 10 minutes
 };
 
 // Apply CORS middleware
@@ -84,6 +106,16 @@ app.use((req, res, next) => {
   }
   
   next();
+});
+
+// Simple health check endpoint
+app.get('/api/health/check', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    database: 'connected',
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
 // API Routes
