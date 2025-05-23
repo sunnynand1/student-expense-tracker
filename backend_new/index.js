@@ -1,13 +1,18 @@
 require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 const { sequelize } = require('./config/db');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Import API routes
+const healthRouter = require('./api/health');
 
 // Middleware
 app.use(helmet());
@@ -18,18 +23,17 @@ app.get('/favicon.ico', (req, res) => {
   return;
 });
 
-// Add a route handler for the root path
+// API Routes
+app.use('/api/health', healthRouter);
+
+// Root route
 app.get('/', (req, res) => {
-  try {
-    res.status(200).json({ 
-      status: 'API is running',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development'
-    });
-  } catch (error) {
-    console.error('Root route error:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+  res.status(200).json({ 
+    status: 'API is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    documentation: 'Use /api/health for health checks'
+  });
 });
 
 // CORS configuration
@@ -85,13 +89,26 @@ app.use(cors(corsOptions));
 // Handle preflight requests
 app.options('*', cors(corsOptions));
 
-// Catch-all for favicon.ico requests that might get through
-app.use((req, res, next) => {
-  if (req.originalUrl && req.originalUrl.split('/').pop() === 'favicon.ico') {
-    res.status(204).end();
-    return;
-  }
-  next();
+// Catch-all for favicon.ico requests
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    status: 'error',
+    message: 'Not Found',
+    path: req.path 
+  });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ 
+    status: 'error',
+    message: 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err.message : {}
+  });
 });
 app.use(morgan('dev'));
 app.use(express.json());
