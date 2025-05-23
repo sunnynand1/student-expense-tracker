@@ -2,28 +2,36 @@ require('dotenv').config();
 
 const config = {
   jwt: {
-    secret: process.env.JWT_SECRET || 'your_jwt_secret_key',
+    secret: process.env.JWT_SECRET,
     expiresIn: '24h'
   },
   cors: {
     origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Content-Range', 'X-Total-Count'],
     maxAge: 600
   },
   database: {
+    url: process.env.DATABASE_URL,
     dialect: 'mysql',
-    host: process.env.DB_HOST || 'mysql.railway.internal',
-    port: parseInt(process.env.DB_PORT || '3306', 10),
-    username: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME || 'railway',
-    logging: false
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    },
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    }
   },
   server: {
-    port: parseInt(process.env.PORT || '3001', 10),
-    env: process.env.NODE_ENV || 'development'
+    port: parseInt(process.env.PORT, 10),
+    env: process.env.NODE_ENV
   }
 };
 
