@@ -26,7 +26,6 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10",
-    "sequelize-cli": "^6.4.1",
-    "@vercel/node": "^4.1.8"
+    "sequelize-cli": "^6.4.1"
   }
 }
