@@ -108,6 +108,10 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
 // Simple health check endpoint
 app.get('/api/health/check', (req, res) => {
   res.status(200).json({
