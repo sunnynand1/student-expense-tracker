@@ -11,6 +11,12 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet());
+
+// Handle favicon.ico requests to prevent 404 errors
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
+});
+
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:3000',
@@ -62,6 +68,15 @@ app.use(cors(corsOptions));
 
 // Handle preflight requests
 app.options('*', cors(corsOptions));
+
+// Serve a blank favicon to prevent 404 errors
+app.use((req, res, next) => {
+  if (req.url === '/favicon.ico') {
+    res.status(204).end();
+  } else {
+    next();
+  }
+});
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
