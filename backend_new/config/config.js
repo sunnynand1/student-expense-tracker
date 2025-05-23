@@ -12,23 +12,6 @@ const config = {
     exposedHeaders: ['Content-Range', 'X-Total-Count'],
     maxAge: 600
   },
-  database: {
-    url: process.env.DATABASE_URL,
-    dialect: 'mysql',
-    logging: false,
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false
-      }
-    },
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
-    }
-  },
   server: {
     port: parseInt(process.env.PORT, 10),
     env: process.env.NODE_ENV
