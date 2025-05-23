@@ -66,15 +66,7 @@ module.exports = (sequelize, DataTypes) => {
 
   // Associations
   User.associate = function(models) {
-    User.hasMany(models.Expense, {
-      foreignKey: 'userId',
-      as: 'expenses'
-    });
-    
-    User.hasMany(models.Budget, {
-      foreignKey: 'userId',
-      as: 'budgets'
-    });
+    // No associations needed
   };
 
   return User;

@@ -8,9 +8,7 @@ testConnection().catch(console.error);
 const db = {
   sequelize,
   Sequelize,
-  User: require('./user')(sequelize, Sequelize),
-  Expense: require('./expense')(sequelize, Sequelize),
-  Budget: require('./budget')(sequelize, Sequelize)
+  User: require('./user')(sequelize, Sequelize)
 };
 
 // Define associations

@@ -41,20 +41,48 @@ const testConnection = async () => {
 
 // Sync database models
 const syncDatabase = async (force = false) => {
+  // Don't use transactions for DDL operations in MySQL
   try {
-    // Drop all tables if force is true
     if (force) {
       console.log('Dropping all tables...');
       await sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
-      await sequelize.sync({ force: true });
+      
+      // Get all table names
+      const [tables] = await sequelize.query(
+        "SHOW TABLES"
+      );
+      
+      // Drop each table
+      for (const table of tables) {
+        const tableName = Object.values(table)[0];
+        console.log(`Dropping table: ${tableName}`);
+        await sequelize.query(`DROP TABLE IF EXISTS \`${tableName}\``);
+      }
+      
       await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
-    } else {
-      await sequelize.sync();
     }
+    
+    // Sync all models without force to prevent data loss
+    console.log('Syncing models...');
+    await sequelize.sync({ alter: true });
+    
     console.log(`✅ Database synced${force ? ' (force)' : ''}`);
     return true;
   } catch (error) {
     console.error('❌ Error syncing database:', error);
+    throw error;
+  }
+};
+
+// Reset database (drop and recreate all tables)
+const resetDatabase = async () => {
+  console.log('Starting database reset...');
+  try {
+    await syncDatabase(true);
+    console.log('✅ Database reset completed successfully!');
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to reset database:', error);
     return false;
   }
 };
@@ -62,5 +90,6 @@ const syncDatabase = async (force = false) => {
 module.exports = {
   sequelize,
   testConnection,
-  syncDatabase
+  syncDatabase,
+  resetDatabase
 };
