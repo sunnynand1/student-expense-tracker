@@ -22,63 +22,65 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // CORS configuration
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:5001',
-  'http://localhost:5173',
-  'https://student-expense-tracker-gilt.vercel.app',
-  'https://student-expense-tracker.vercel.app',
-  'https://student-expense-tracker-frontend.vercel.app',
-  'https://student-expense-tracker-api.vercel.app',
-  'https://student-expense-tracker-sunny.vercel.app',
-  'https://student-expense-tracker-git-main-sunnynand1s-projects.vercel.app',
-  'https://student-expense-tracker-*.vercel.app', // Wildcard for preview deployments
-  'https://*.vercel.app' // Allow all Vercel preview deployments
-];
+const corsOptions = {
+  origin: function(origin, callback) {
+    // In development, allow all origins
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    // In production, only allow specific origins
+    const allowedOrigins = [
+      /^https?:\/\/student-expense-tracker(-\w+)?\.vercel\.app$/, // Vercel deployments
+      /^https?:\/\/.*\.vercel\.app$/, // All Vercel preview deployments
+      /^https?:\/\/student-expense-tracker\.com$/, // Production domain
+      /^https?:\/\/www\.student-expense-tracker\.com$/, // www subdomain
+      /^http:\/\/localhost(:[0-9]+)?$/, // Localhost with any port
+      /^https?:\/\/localhost(:[0-9]+)?$/ // Localhost with any port and https
+    ];
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if the origin matches any of the allowed patterns
+    const isAllowed = allowedOrigins.some(regex => regex.test(origin));
+    callback(null, isAllowed);
+  },
+  credentials: true, // Allow cookies to be sent with requests
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-Auth-Token', 'X-API-Key'],
+  exposedHeaders: ['Content-Range', 'X-Total-Count'],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+};
 
-// CORS middleware
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
+
+// Add CORS headers to all responses
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Auth-Token, X-API-Key');
-    return res.status(200).json({});
-  }
+  // Define allowed origins for this middleware (same as above)
+  const allowedOrigins = [
+    /^https?:\/\/student-expense-tracker(-\w+)?\.vercel\.app$/,
+    /^https?:\/\/.*\.vercel\.app$/,
+    /^https?:\/\/student-expense-tracker\.com$/,
+    /^https?:\/\/www\.student-expense-tracker\.com$/,
+    /^http:\/\/localhost(:[0-9]+)?$/,
+    /^https?:\/\/localhost(:[0-9]+)?$/
+  ];
   
-  // Allow requests from any origin in development
-  if (process.env.NODE_ENV === 'development') {
-    res.header('Access-Control-Allow-Origin', origin || '*');
+  // Check if the origin is allowed
+  const isAllowed = !origin || allowedOrigins.some(regex => regex.test(origin));
+  
+  if (isAllowed && origin) {
+    res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Credentials', 'true');
-  } 
-  // In production, check against allowed origins
-  else {
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (allowedOrigin.includes('*')) {
-        const regex = new RegExp(allowedOrigin.replace('*', '.*'));
-        return regex.test(origin);
-      }
-      return origin === allowedOrigin;
-    });
-    
-    if (isAllowed) {
-      res.header('Access-Control-Allow-Origin', origin);
-      res.header('Access-Control-Allow-Credentials', 'true');
-    } else if (origin) {
-      console.warn('Blocked request from origin:', origin);
-      return res.status(403).json({ error: 'Origin not allowed' });
-    }
-  }
-  
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Auth-Token, X-API-Key');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, X-Auth-Token, X-API-Key');
   }
   
   next();

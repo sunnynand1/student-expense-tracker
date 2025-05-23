@@ -4,12 +4,12 @@
   "description": "Backend for Student Expense Tracker",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "echo 'Build complete'",
-    "vercel-build": "npm install --production=false && npm run build"
-  },
+  "start": "set PORT=5001 && node index.js",
+  "dev": "set PORT=5001 && nodemon index.js",
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "build": "echo 'Build complete'",
+  "vercel-build": "npm install --production=false && npm run build"
+},
   "engines": {
     "node": ">=14.x"
   },

@@ -23,14 +23,16 @@ const api = axios.create({
   withCredentials: true,  // Important for cookies, authorization headers with HTTPS
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
   },
-  timeout: 15000, // Increased timeout for API calls
+  timeout: 30000, // Increased timeout for API calls
   xsrfCookieName: 'XSRF-TOKEN',
   xsrfHeaderName: 'X-XSRF-TOKEN',
   validateStatus: function (status) {
     return status >= 200 && status < 500; // Resolve only if the status code is less than 500
-  }
+  },
+  crossDomain: true
 });
 
 // Navigation will be handled by React Router's useNavigate hook
