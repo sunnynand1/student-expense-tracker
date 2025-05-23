@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "backend_new/index.js",
+      "src": "backend_new/package.json",
       "use": "@vercel/node",
       "config": {
         "maxLambdaSize": "15mb",
@@ -12,7 +12,7 @@
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": { 
+      "config": {
         "distDir": "build",
         "env": {
           "REACT_APP_API_URL": "https://student-expense-tracker-api.vercel.app/api"
@@ -49,17 +49,6 @@
     {
       "src": "^/(.*)",
       "dest": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Credentials", "value": "true" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,PATCH,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
-      ]
     }
   ]
 }
