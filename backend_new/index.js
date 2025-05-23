@@ -193,59 +193,49 @@ app.use((err, req, res, next) => {
 // Database connection and server initialization
 const startServer = async () => {
   try {
-    // For SQLite, we'll skip the authentication test
-    if (process.env.NODE_ENV !== 'test') {
-      console.log('🔍 Testing database connection...');
-      await sequelize.authenticate();
-      console.log('✅ Database connection established.');
-
-      // Sync database models
-      console.log('🔄 Syncing database models...');
-      await sequelize.sync({ force: false, alter: true });
-      console.log('✅ Database models synced.');
-    }
-
-    // Start server
-    const server = app.listen(PORT, '0.0.0.0', () => {
-      const address = server.address();
-      const host = address.address === '::' ? 'localhost' : address.address;
-      console.log(`🚀 Server running on http://${host}:${address.port}`);
-      console.log(`🌐 Try: http://localhost:${address.port}/api/health`);
-      console.log(`📊 Database: ${process.env.DATABASE_STORAGE || 'Not specified'}`);
-      
-      // Log all available routes
-      console.log('\nAvailable routes:');
-      console.log(`- GET  /api/health`);
-      console.log(`- POST /api/auth/register`);
-      console.log(`- POST /api/auth/login`);
-      console.log(`- GET  /api/expenses`);
-      console.log(`- POST /api/expenses`);
-      console.log(`- GET  /api/budgets`);
-      console.log(`- POST /api/budgets`);
-    });
-
-    // Handle server errors
-    server.on('error', (error) => {
-      if (error.code === 'EADDRINUSE') {
-        console.error(`❌ Port ${PORT} is already in use.`);
-        console.log('Try one of these solutions:');
-        console.log(`1. Stop the other process using port ${PORT}`);
-        console.log(`2. Use a different port by setting the PORT environment variable`);
-        console.log('   Example: `set PORT=3002 && npm start`');
-      } else {
-        console.error('❌ Server error:', error);
-      }
-      process.exit(1);
-    });
+    // Test database connection
+    await sequelize.authenticate();
+    console.log('Database connection has been established successfully.');
     
-    // Handle process termination
-    process.on('SIGTERM', () => {
-      console.log('\n🚦 SIGTERM received. Shutting down gracefully...');
-      server.close(() => {
-        console.log('💤 Server stopped');
-        process.exit(0);
+    // Log all available routes
+    console.log('\nAvailable routes:');
+    console.log(`- GET  /api/health`);
+    console.log(`- POST /api/auth/register`);
+    console.log(`- POST /api/auth/login`);
+    console.log(`- GET  /api/expenses`);
+    console.log(`- POST /api/expenses`);
+    console.log(`- GET  /api/budgets`);
+    console.log(`- POST /api/budgets`);
+
+    // Only start the server if not in Vercel environment
+    if (process.env.VERCEL !== '1') {
+      const server = app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
       });
-    });
+
+      // Handle server errors
+      server.on('error', (error) => {
+        if (error.code === 'EADDRINUSE') {
+          console.error(`❌ Port ${PORT} is already in use.`);
+          console.log('Try one of these solutions:');
+          console.log(`1. Stop the other process using port ${PORT}`);
+          console.log(`2. Use a different port by setting the PORT environment variable`);
+          console.log('   Example: `set PORT=3002 && npm start`');
+        } else {
+          console.error('❌ Server error:', error);
+        }
+        process.exit(1);
+      });
+      
+      // Handle process termination
+      process.on('SIGTERM', () => {
+        console.log('\n🚦 SIGTERM received. Shutting down gracefully...');
+        server.close(() => {
+          console.log('💤 Server stopped');
+          process.exit(0);
+        });
+      });
+    }
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);

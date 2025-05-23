@@ -6,22 +6,24 @@ let API_URL;
 
 // Set API URL based on environment
 if (process.env.NODE_ENV === 'production') {
-  // In production, use the production API URL
-  API_URL = 'https://student-expense-tracker-api.vercel.app/api';
+  // In production, use the Vercel backend URL
+  API_URL = 'https://backend-c2cvv3o4t-sunnys-projects-1afd7f5e.vercel.app/api';
   console.log('Running in production mode, using API:', API_URL);
 } else {
-  // In development, use localhost
-  API_URL = 'http://localhost:5001/api';
+  // In development, use the Vercel backend URL for testing
+  // You can switch back to localhost if needed
+  API_URL = 'https://backend-c2cvv3o4t-sunnys-projects-1afd7f5e.vercel.app/api';
   console.log('Running in development mode, using API:', API_URL);
 }
 
-// Allow overriding with environment variable if needed
-if (process.env.REACT_APP_API_URL) {
-  API_URL = process.env.REACT_APP_API_URL;
-  console.log('Overriding API URL with REACT_APP_API_URL:', API_URL);
-}
-
+console.log('Environment:', process.env.NODE_ENV);
 console.log('Final API URL:', API_URL);
+
+// Log the environment variables for debugging
+console.log('Environment variables:', {
+  NODE_ENV: process.env.NODE_ENV,
+  REACT_APP_API_URL: process.env.REACT_APP_API_URL
+});
 
 // Create axios instance with default config
 const api = axios.create({

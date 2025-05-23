@@ -4,15 +4,16 @@
   "description": "Backend for Student Expense Tracker",
   "main": "index.js",
   "scripts": {
-  "start": "set PORT=5001 && node index.js",
-  "dev": "set PORT=5001 && nodemon index.js",
-  "test": "echo \"Error: no test specified\" && exit 1",
-  "build": "echo 'Build complete'",
-  "vercel-build": "npm install --production=false && npm run build"
-},
-  "engines": {
-    "node": ">=14.x"
+    "start": "set PORT=5001 && node index.js",
+    "dev": "set PORT=5001 && nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo 'Build complete'",
+    "vercel-build": "npm install --production=false && npm run build"
   },
+  "engines": {
+    "node": ">=16.x"
+  },
+  "private": true,
   "dependencies": {
     "@vercel/node": "^4.0.0",
     "bcryptjs": "^2.4.3",

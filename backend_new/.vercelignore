@@ -1,0 +1,42 @@
+# Ignore node_modules in subdirectories
+**/node_modules/**
+
+# Include root node_modules
+!node_modules/
+
+# Include mysql2 package specifically
+!node_modules/mysql2/**
+
+# Ignore development and test files
+.test
+.env.local
+.env.development
+.env.test
+
+# Ignore git and other version control
+.git
+.gitignore
+
+# Ignore editor files
+.vscode
+.idea
+*.sublime-*
+
+# Ignore logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore build files
+build
+dist
+
+# Include all other files
+*
+!*/
+!*.js
+!*.json
+!*.md
+!*.txt
