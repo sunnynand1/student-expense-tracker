@@ -16,24 +16,52 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
   'https://student-expense-tracker-gilt.vercel.app',
-  'https://student-expense-tracker.vercel.app'
+  'https://student-expense-tracker.vercel.app',
+  'https://student-expense-tracker-frontend.vercel.app',
+  'https://student-expense-tracker-api.vercel.app'
 ];
 
-app.use(cors({
+// Log environment for debugging
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('Allowed Origins:', allowedOrigins);
+
+const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+    // Allow all origins in development
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
     }
-    return callback(null, true);
+    
+    // Check against allowed origins in production
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      return callback(null, true);
+    }
+    
+    console.log('CORS blocked for origin:', origin);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'X-Auth-Token',
+    'X-API-Key'
+  ],
+  exposedHeaders: ['Content-Range', 'X-Total-Count'],
+  maxAge: 600 // 10 minutes
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
