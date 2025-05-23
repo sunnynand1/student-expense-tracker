@@ -2,7 +2,7 @@ const { Sequelize } = require('sequelize');
 const config = require('./config');
 
 const sequelize = new Sequelize(
-  config.database.name,
+  config.database.database,
   config.database.username,
   config.database.password,
   {
@@ -31,21 +31,19 @@ const testConnection = async () => {
     return true;
   } catch (error) {
     console.error('❌ Unable to connect to the database:', error);
-    throw error;
+    return false;
   }
 };
 
 // Sync database models
-const syncDatabase = async () => {
+const syncDatabase = async (force = false) => {
   try {
-    if (process.env.NODE_ENV !== 'production') {
-      await sequelize.sync({ alter: true });
-      console.log('✅ Database models synced.');
-    }
+    await sequelize.sync({ force });
+    console.log(`✅ Database & tables ${force ? 'created' : 'synchronized'}!`);
     return true;
   } catch (error) {
-    console.error('❌ Error syncing database:', error);
-    throw error;
+    console.error('❌ Database synchronization failed:', error);
+    return false;
   }
 };
 

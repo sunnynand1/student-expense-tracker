@@ -6,15 +6,19 @@ const config = {
     expiresIn: '24h'
   },
   cors: {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Content-Range', 'X-Total-Count'],
     maxAge: 600
   },
   database: {
-    dialect: 'sqlite',
-    storage: process.env.DB_STORAGE || './database.sqlite',
+    dialect: 'mysql',
+    host: process.env.DB_HOST || 'mysql.railway.internal',
+    port: parseInt(process.env.DB_PORT || '3306', 10),
+    username: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'railway',
     logging: false
   },
   server: {
@@ -29,7 +33,13 @@ config.isDevelopment = !config.isProduction;
 
 // Log configuration (but hide sensitive data)
 const safeConfig = { ...config };
-safeConfig.database.password = '***';
-console.log('Configuration loaded:', JSON.stringify(safeConfig, null, 2));
+if (safeConfig.database) {
+  safeConfig.database = { ...safeConfig.database };
+  if (safeConfig.database.password) {
+    safeConfig.database.password = '******';
+  }
+}
+
+console.log('Configuration loaded:', safeConfig);
 
 module.exports = config;
