@@ -31,20 +31,45 @@ const allowedOrigins = [
   'https://student-expense-tracker.vercel.app',
   'https://student-expense-tracker-frontend.vercel.app',
   'https://student-expense-tracker-api.vercel.app',
-  'https://backend-pv0at0dzx-sunnys-projects-1afd7f5e.vercel.app'
+  'https://student-expense-tracker-sunny.vercel.app',
+  'https://student-expense-tracker-git-main-sunnynand1s-projects.vercel.app',
+  'https://student-expense-tracker-*.vercel.app', // Wildcard for preview deployments
+  'https://*.vercel.app' // Allow all Vercel preview deployments
 ];
 
 // CORS middleware
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Auth-Token, X-API-Key');
+    return res.status(200).json({});
+  }
+  
   // Allow requests from any origin in development
   if (process.env.NODE_ENV === 'development') {
     res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
   } 
-  // In production, only allow requests from allowed origins
-  else if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
+  // In production, check against allowed origins
+  else {
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (allowedOrigin.includes('*')) {
+        const regex = new RegExp(allowedOrigin.replace('*', '.*'));
+        return regex.test(origin);
+      }
+      return origin === allowedOrigin;
+    });
+    
+    if (isAllowed) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Access-Control-Allow-Credentials', 'true');
+    } else if (origin) {
+      console.warn('Blocked request from origin:', origin);
+      return res.status(403).json({ error: 'Origin not allowed' });
+    }
   }
   
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');

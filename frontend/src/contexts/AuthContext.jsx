@@ -26,8 +26,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
-        // Set the authorization header
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        // The auth token is automatically handled by the API interceptor in budgetAPI.js
       } catch (error) {
         console.error('Error parsing stored user:', error);
         localStorage.removeItem('user');
@@ -39,7 +38,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await api.post('/auth/register', userData);
+      const response = await authAPI.register(userData);
       const { token, user: registeredUser, message } = response.data;
 
       // Don't automatically log in after registration
@@ -65,15 +64,14 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await api.post('/auth/login', credentials);
+      const response = await authAPI.login(credentials);
       const { token, user: userData, message } = response.data;
 
       // Store authentication data
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
 
-      // Set the authorization header
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      // The authorization header is set by the API interceptor in budgetAPI.js
 
       setUser(userData);
       return {
@@ -93,15 +91,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // Clear authentication data
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    
-    // Remove Authorization header
-    delete api.defaults.headers.common['Authorization'];
-    
-    setUser(null);
-    navigate('/login');
+    try {
+      // Call the logout API if needed
+      authAPI.logout().catch(error => {
+        console.error('Logout API error:', error);
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      // Clear authentication data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // The API interceptor will handle removing the auth header for future requests
+      
+      setUser(null);
+      navigate('/login');
+    }
   };
 
   const value = {

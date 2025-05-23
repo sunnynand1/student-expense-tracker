@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
-import { authAPI, setNavigate } from '../../services/budgetAPI';
-import { authAPI as api } from '../../services/budgetAPI';
+import { authAPI } from '../../services/budgetAPI';
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -54,8 +53,7 @@ export default function LoginForm() {
         localStorage.setItem('user', JSON.stringify(testUser));
         localStorage.setItem('lastLogin', Date.now().toString());
         
-        // Set auth header
-        api.defaults.headers.common['Authorization'] = `Bearer ${testUser.token}`;
+        // The auth token is automatically handled by the API interceptor in budgetAPI.js
         
         setSuccess('Development login successful! Redirecting...');
         
@@ -101,8 +99,7 @@ export default function LoginForm() {
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('lastLogin', Date.now().toString());
       
-      // Set the default authorization header for all future requests
-      api.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
+      // The auth token is automatically handled by the API interceptor in budgetAPI.js
       
       setSuccess('Login successful! Redirecting...');
       

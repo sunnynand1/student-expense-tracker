@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { expensesAPI, analyticsAPI } from '../services/budgetAPI';
 import { 
   BanknotesIcon, 
   CurrencyDollarIcon,
@@ -216,8 +217,8 @@ const Dashboard = () => {
       );
       
       // Get user's monthly budget
-      const budgetResponse = await api.get('/user/budget');
-      const monthlyBudget = budgetResponse?.data?.monthlyBudget || 0;
+      const budgetResponse = await expensesAPI.getStats();
+      const monthlyBudget = budgetResponse?.data?.data?.monthlyBudget || 0;
       
       // Group expenses by category
       const expensesByCategory = expenses.reduce((acc, expense) => {

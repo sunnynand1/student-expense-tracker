@@ -1,22 +1,36 @@
 import axios from 'axios';
 import { getToken, removeToken } from '../utils/auth';
 
-// Backend server URL with fallback
-const API_URL = process.env.REACT_APP_API_URL || 
-  (process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:5001/api' 
-    : 'https://student-expense-tracker-om9t.vercel.app/api');
+// Backend server URL configuration
+let API_URL;
+
+if (process.env.NODE_ENV === 'development') {
+  // In development, use the local backend
+  API_URL = 'http://localhost:5001/api';
+} else if (process.env.REACT_APP_API_URL) {
+  // Use the environment variable if set (for Vercel)
+  API_URL = process.env.REACT_APP_API_URL;
+} else {
+  // Fallback to production URL
+  API_URL = 'https://student-expense-tracker-api.vercel.app/api';
+}
 
 console.log('API URL:', API_URL); // For debugging
 
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true,  // Enable credentials for CORS
+  withCredentials: true,  // Important for cookies, authorization headers with HTTPS
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
   },
-  timeout: 10000
+  timeout: 15000, // Increased timeout for API calls
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
+  validateStatus: function (status) {
+    return status >= 200 && status < 500; // Resolve only if the status code is less than 500
+  }
 });
 
 // Navigation will be handled by React Router's useNavigate hook
