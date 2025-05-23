@@ -21,7 +21,7 @@ import {
   PieChart,
   BarChart,
 } from 'lucide-react';
-import { analyticsAPI } from '../services/api';
+import { analyticsAPI } from '../services/budgetAPI';
 
 // Register ChartJS components
 ChartJS.register(

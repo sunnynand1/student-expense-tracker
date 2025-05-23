@@ -31,7 +31,7 @@ import {
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import api, { expensesAPI } from '../services/api';
+import { authAPI, expensesAPI } from '../services/budgetAPI';
 import { useAuth } from '../contexts/AuthContext';
 
 // Custom color palette

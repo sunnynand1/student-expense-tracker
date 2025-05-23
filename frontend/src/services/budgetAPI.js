@@ -2,12 +2,17 @@ import axios from 'axios';
 import { getToken, removeToken } from '../utils/auth';
 
 // Backend server URL with fallback
-const API_URL = "https://student-expense-tracker-om9t.vercel.app/api" || 'http://localhost:3001/api';
+const API_URL = process.env.REACT_APP_API_URL || 
+  (process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:5001/api' 
+    : 'https://student-expense-tracker-om9t.vercel.app/api');
+
+console.log('API URL:', API_URL); // For debugging
 
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: false,
+  withCredentials: true,  // Enable credentials for CORS
   headers: {
     'Content-Type': 'application/json'
   },

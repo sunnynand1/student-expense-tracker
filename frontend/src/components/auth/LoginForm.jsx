@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
-import { authAPI, setNavigate } from '../../services/api';
-import api from '../../services/api';
+import { authAPI, setNavigate } from '../../services/budgetAPI';
+import { authAPI as api } from '../../services/budgetAPI';
 
 export default function LoginForm() {
   const navigate = useNavigate();

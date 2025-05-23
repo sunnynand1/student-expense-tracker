@@ -1,5 +1,4 @@
 require('dotenv').config();
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -9,36 +8,24 @@ const path = require('path');
 const { sequelize } = require('./config/db');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5001;
 
-// Import API routes
-const healthRouter = require('./api/health');
+// Log environment for debugging
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('Server starting on port:', PORT);
 
-// Middleware
+// Basic middleware
 app.use(helmet());
-
-// Handle favicon.ico requests to prevent 404 errors
-app.get('/favicon.ico', (req, res) => {
-  res.status(204).end();
-  return;
-});
-
-// API Routes
-app.use('/api/health', healthRouter);
-
-// Root route
-app.get('/', (req, res) => {
-  res.status(200).json({ 
-    status: 'API is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    documentation: 'Use /api/health for health checks'
-  });
-});
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5001',
   'http://localhost:5173',
   'https://student-expense-tracker-gilt.vercel.app',
   'https://student-expense-tracker.vercel.app',
@@ -47,104 +34,100 @@ const allowedOrigins = [
   'https://backend-pv0at0dzx-sunnys-projects-1afd7f5e.vercel.app'
 ];
 
-// Log environment for debugging
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('Allowed Origins:', allowedOrigins);
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Allow all origins in development
-    if (process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    
-    // Check against allowed origins in production
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      return callback(null, true);
-    }
-    
-    console.log('CORS blocked for origin:', origin);
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-Requested-With',
-    'Accept',
-    'Origin',
-    'X-Auth-Token',
-    'X-API-Key'
-  ],
-  exposedHeaders: ['Content-Range', 'X-Total-Count'],
-  maxAge: 600 // 10 minutes
-};
-
-app.use(cors(corsOptions));
-
-// Handle preflight requests
-app.options('*', cors(corsOptions));
-
-// Catch-all for favicon.ico requests
-app.get('/favicon.ico', (req, res) => res.status(204).end());
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ 
-    status: 'error',
-    message: 'Not Found',
-    path: req.path 
-  });
+// CORS middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Allow requests from any origin in development
+  if (process.env.NODE_ENV === 'development') {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+  } 
+  // In production, only allow requests from allowed origins
+  else if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Auth-Token, X-API-Key');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
 });
 
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({ 
-    status: 'error',
-    message: 'Internal Server Error',
-    error: process.env.NODE_ENV === 'development' ? err.message : {}
-  });
-});
-app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+// API Routes
+const healthRouter = require('./api/health');
+app.use('/api/health', healthRouter);
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    message: 'Server is running',
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Routes
+// Application Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/expenses', require('./routes/expenses'));
 app.use('/api/budgets', require('./routes/budgets'));
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
+// Root route
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    status: 'API is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    documentation: 'Use /api/health for health checks',
+    endpoints: ['/api/health', '/api/auth', '/api/expenses', '/api/budgets']
+  });
+});
+
+// Handle favicon.ico requests to prevent 404 errors
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// 404 handler - catch 404 and forward to error handler
+app.use((req, res, next) => {
+  res.status(404).json({ 
     status: 'error',
-    message: 'Not Found'
+    message: 'Endpoint not found',
+    path: req.path,
+    method: req.method
   });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  res.status(500).json({
+  
+  // Handle Sequelize validation errors
+  if (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError') {
+    const errors = err.errors.map(e => ({
+      field: e.path,
+      message: e.message
+    }));
+    
+    return res.status(400).json({
+      status: 'error',
+      message: 'Validation Error',
+      errors
+    });
+  }
+  
+  // Handle JWT errors
+  if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+    return res.status(401).json({
+      status: 'error',
+      message: 'Authentication failed',
+      error: err.message
+    });
+  }
+  
+  // Default error handler
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({
     status: 'error',
-    message: 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { error: err.message })
+    message: err.message || 'Internal Server Error',
+    ...(process.env.NODE_ENV === 'development' && { 
+      error: err.message,
+      stack: err.stack 
+    })
   });
 });
 
@@ -164,9 +147,22 @@ const startServer = async () => {
     }
 
     // Start server
-    const server = app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📊 Database: ${process.env.DATABASE_STORAGE}`);
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      const address = server.address();
+      const host = address.address === '::' ? 'localhost' : address.address;
+      console.log(`🚀 Server running on http://${host}:${address.port}`);
+      console.log(`🌐 Try: http://localhost:${address.port}/api/health`);
+      console.log(`📊 Database: ${process.env.DATABASE_STORAGE || 'Not specified'}`);
+      
+      // Log all available routes
+      console.log('\nAvailable routes:');
+      console.log(`- GET  /api/health`);
+      console.log(`- POST /api/auth/register`);
+      console.log(`- POST /api/auth/login`);
+      console.log(`- GET  /api/expenses`);
+      console.log(`- POST /api/expenses`);
+      console.log(`- GET  /api/budgets`);
+      console.log(`- POST /api/budgets`);
     });
 
     // Handle server errors
@@ -181,6 +177,15 @@ const startServer = async () => {
         console.error('❌ Server error:', error);
       }
       process.exit(1);
+    });
+    
+    // Handle process termination
+    process.on('SIGTERM', () => {
+      console.log('\n🚦 SIGTERM received. Shutting down gracefully...');
+      server.close(() => {
+        console.log('💤 Server stopped');
+        process.exit(0);
+      });
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

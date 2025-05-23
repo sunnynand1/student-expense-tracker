@@ -12,7 +12,7 @@ import {
   User,
   Bell
 } from 'lucide-react';
-import { authAPI } from '../services/api';
+import { authAPI } from '../services/budgetAPI';
 
 const MainLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
